@@ -1,11 +1,12 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 03-03-2024 13:17:52
+ *  Last modified : 03-03-2024 20:58:58
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "engine.h"
 
@@ -14,6 +15,8 @@ extern const vec3 UNDEFINED_VEC3;
 
 const char DEFAULT_CHAR = ' ';
 const float ASPECT_RATIO_CHARACTER_SHELL = 1.5;
+
+const float ANGLE_ROTATION = 10;
 
 screen* init_screen(int width, int height){
     screen* s = calloc(1, sizeof(screen));
@@ -59,7 +62,7 @@ void change_pixel(screen *s, vec2 v, char c){
 }
 
 vec2 vec2_to_screen(screen *s, vec2 v){
-    // Normalisation
+    // Normalization
     v.x = ASPECT_RATIO_CHARACTER_SHELL * ((float) s->height/ (float) s->width) * v.x + 1.0;
     v.y = -v.y + 1.0;
 
@@ -107,38 +110,61 @@ void free_screen(screen* s){
     free(s);
 }
 
-camera* init_camera(int x, int y, int z){
+camera* init_camera(){
     camera *cam = calloc(1, sizeof(camera));
-    cam->pos.x = x;
-    cam->pos.y = y;
-    cam->pos.z = z;
+    vec3 pos = {0, 0, 0};
+    
+    vec3 v1 = {1, 0, 0};
+    vec3 v2 = {0, 1, 0};
+    vec3 v3 = {0, 0, 1};
+    
+    cam->pos = pos;
+    cam->v1 = v1;
+    cam->v2 = v2;
+    cam->v3 = v3;
     return cam;
+}
+
+void rotate_camera_around_z(camera* c, int sign){
+    double** r = rotation_matrix_z(sign*ANGLE_ROTATION);
+
+    c->v1 = multiply_matrix_vector_3D(r, c->v1);
+    c->v2 = multiply_matrix_vector_3D(r, c->v2);
+    c->v3 = multiply_matrix_vector_3D(r, c->v3);
 }
 
 void moveCamera(camera *cam, char command){
     switch (command)    {
     case 'z':
-        cam->pos.y -= 0.25;
-        break;
-
-    case 's':
         cam->pos.y += 0.25;
         break;
 
+    case 's':
+        cam->pos.y -= 0.25;
+        break;
+
     case 'q':
-        cam->pos.x += 0.25;
+        cam->pos.x -= 0.25;
         break;
 
     case 'd':
-        cam->pos.x -= 0.25;
+        cam->pos.x += 0.25;
         break;
     
     case 'a':
-        cam->pos.z -= 0.25;
+        cam->pos.z += 0.25;
         break;
 
     case 'e':
-        cam->pos.z += 0.25;
+        cam->pos.z -= 0.25;
+        break;
+
+    case 'w':
+        rotate_camera_around_z(cam, 1);
+        break;
+
+    case 'c':
+        rotate_camera_around_z(cam, -1);
         break;
 
     default:
@@ -146,6 +172,62 @@ void moveCamera(camera *cam, char command){
     }
 }
 
+void print_camera_infos(camera* cam){
+    printf("Position camera : ");print_vec3(cam->pos);printf("\n");
+    printf("Vecteur normal : ");print_vec3(cam->v2);printf("\n");
+}
+
 void free_camera(camera *cam){
     free(cam);
+}
+
+scene* init_scene(int n){
+    scene* s = calloc(1, sizeof(scene));
+
+    s->n = n;
+    s->objects = calloc(s->n, sizeof(triangle3D));
+    s->cam = init_camera(0, 0, 0);
+
+    return s;
+}
+
+vec3 changeReference(vec3 b1, vec3 b2, vec3 b3, vec3 v){
+    vec3 r;
+
+    r.x = b1.x*prod_vec3(b1, v) + b2.x*prod_vec3(b2, v) + b3.x*prod_vec3(b3, v);
+    r.y = b1.y*prod_vec3(b1, v) + b2.y*prod_vec3(b2, v) + b3.y*prod_vec3(b3, v);
+    r.z = b1.z*prod_vec3(b1, v) + b2.z*prod_vec3(b2, v) + b3.z*prod_vec3(b3, v);
+    
+    return r;
+}
+
+triangle3D changeReferenceToCamera(camera* cam, triangle3D t){
+    triangle3D r;
+
+    r.v1 = changeReference(cam->v1, cam->v2, cam->v3, t.v1);
+    r.v2 = changeReference(cam->v1, cam->v2, cam->v3, t.v2);
+    r.v3 = changeReference(cam->v1, cam->v2, cam->v3, t.v3);
+
+    return r;
+}
+
+void render(screen* scr, scene* s){
+    for(int i = 0; i < s->n; i++){
+        // /!\ no distinction between triangles shown and the others
+        triangle3D t = changeReferenceToCamera(s->cam, s->objects[i]);
+
+        t.v1 = sub_vec3(t.v1, s->cam->pos);
+        t.v2 = sub_vec3(t.v2, s->cam->pos);
+        t.v3 = sub_vec3(t.v3, s->cam->pos);
+        
+        triangle2D t2 = project_triangle3D_to_2D(t);
+        draw_triangle2D(scr, triangle2D_to_screen(scr, t2));
+    }
+    update_screen(scr);
+}
+
+void free_scene(scene* s){
+    free(s->objects);
+    free_camera(s->cam);
+    free(s);
 }

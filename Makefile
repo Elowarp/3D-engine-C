@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -lncurses
+CFLAGS = -Wall -Wextra -Werror -lncurses -lm
 DEPS = engine/engine.h utils/math.h
 OBJ = main.o engine/engine.o utils/math.o
 TARGET = main

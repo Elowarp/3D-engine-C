@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 03-03-2024 13:17:57
+ *  Last modified : 03-03-2024 20:20:43
  */
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -16,7 +16,16 @@ typedef struct {
 
 typedef struct {
     vec3 pos;
+    vec3 v1;
+    vec3 v2; // Normal vector
+    vec3 v3;
 } camera;
+
+typedef struct {
+    int n;
+    camera* cam;
+    triangle3D* objects;
+} scene;
 
 screen* init_screen(int width, int height);
 void change_size_screen(screen* s, int width, int height);
@@ -28,8 +37,13 @@ triangle2D triangle2D_to_screen(screen *s, triangle2D t);
 void draw_triangle2D(screen *s, triangle2D t);
 void free_screen(screen *s);
 
-camera* init_camera(int x, int y, int z);
+camera* init_camera();
 void moveCamera(camera *cam, char command);
+void print_camera_infos(camera* cam);
 void free_camera(camera *cam);
+
+scene* init_scene(int n);
+void render(screen* scr, scene* s);
+void free_scene(scene* s);
 
 #endif
