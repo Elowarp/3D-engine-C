@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 03-03-2024 21:00:14
+ *  Last modified : 03-03-2024 23:06:28
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,12 +31,12 @@ int main(){
 
     scene* s = init_scene(1);
 
-    vec3 v1 = {-0.5, -0.5, 1};
-    vec3 v2 = {0,     0.5, 1};
-    vec3 v3 = {0.5,  -0.5, 1};
+    // Init Triangle
+    vec3 v1 = {-0.5, 2, -0.5};
+    vec3 v2 = {0,    2,  0.5};
+    vec3 v3 = {0.5,  2, -0.5};
 
     triangle3D t = {v1, v2, v3};
-
     s->objects[0] = t;
     
     while(true){   
@@ -47,8 +47,6 @@ int main(){
 
         clear_screen(scr);
         render(scr, s);
-
-        // print_camera_infos(s->cam);
         
         moveCamera(s->cam, getchar());
     }

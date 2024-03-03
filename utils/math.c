@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 03-03-2024 20:59:32
+ *  Last modified : 03-03-2024 23:09:22
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,9 +15,7 @@ const vec2 UNDEFINED_VEC2 = {__FLT_MAX__, __FLT_MAX__};
 const vec3 UNDEFINED_VEC3 = {__FLT_MAX__, __FLT_MAX__, __FLT_MAX__};
 
 
-/*
-    Vectors 2 dimensions
-*/
+// 2D Vectors
 vec2 add_vec2(vec2 v1, vec2 v2){
     vec2 r = {v1.x, v1.y};
     r.x = r.x + v2.x;
@@ -55,10 +53,7 @@ bool is_undefined_vec2(vec2 v){
 }
 
 
-
-/*
-    Vectors 3 dimensions
-*/
+// 3D Vectors
 vec3 add_vec3(vec3 v1, vec3 v2){
     vec3 r = {v1.x, v1.y, v1.z};
     r.x = r.x + v2.x;
@@ -94,20 +89,12 @@ vec3 div_vec3(vec3 v, int s){
 
 double prod_vec3(vec3 v, vec3 u){
     // Scalar product
-    return v.x*u.x + v.y*u.y + v.z+u.z;
-}
-
-
-vec3 project_vec_on_hyperplan(vec3 v, vec3 n){    
-    vec3 u = sub_vec3(v, n);
-    float dist = prod_vec3(u, n);
-    vec3 res = sub_vec3(v, mul_vec3(n, dist));
-    return res;
+    return v.x*u.x + v.y*u.y + v.z*u.z;
 }
 
 vec2 projection_to_2D(vec3 v){
-    if (v.z == 0) return UNDEFINED_VEC2;
-    vec2 res = {v.x/v.z, v.y/v.z};
+    if (v.y == 0) return UNDEFINED_VEC2;
+    vec2 res = {v.x/v.y, v.z/v.y};
     return res;
 }
 
@@ -120,6 +107,8 @@ bool is_undefined_vec3(vec3 v){
         || v.z == UNDEFINED_VEC3.z; 
 }
 
+
+// Triangles
 bool is_undefined_triangle2D(triangle2D t){
     return is_undefined_vec2(t.v1) || is_undefined_vec2(t.v2)
         || is_undefined_vec2(t.v3);
@@ -159,19 +148,21 @@ triangle2D project_triangle3D_to_2D(triangle3D t){
     return r;
 }
 
-int calc_coef(int** m, int** n, int i, int j, int k){
-    int s = 0;
+
+// Matrices
+double calc_coef(double** m, double** n, int i, int j, int k){
+    double s = 0;
     for(int q = 0; q<j; q++){
         s += m[i][q]*n[q][k];
     }
     return s;
 }
 
-int** mul_matrix(int** m, int** n, int i, int j, int k){
+double** mul_matrix(double** m, double** n, int i, int j, int k){
     // m * n
-    int** r = calloc(i, sizeof(int*));
+    double** r = calloc(i, sizeof(double*));
     for(int q=0; q<i; q++){
-        r[q] = calloc(k, sizeof(int));
+        r[q] = calloc(k, sizeof(double));
     }
 
     for(int l = 0; l<i; l++){
@@ -230,6 +221,61 @@ double** rotation_matrix_z(double angle){
     return r;
 }
 
+double** transpose(double** t, int n){
+    double** m = calloc(n, sizeof(double*));
+    for(int i=0; i<n; i++){
+        m[i] = calloc(n, sizeof(double));
+    }
+
+    for(int i=0; i<n; i++){
+        for(int j=0; j<n; j++){
+            m[i][j] = t[j][i];
+        }
+    }
+
+    return t;
+}
+
+double** transition_matrix(vec3 e1, vec3 e2, vec3 e3){
+    /*
+    Returns the transition matrix (which is orthogonal) of the  canonic base into the 
+    (e1, e2, e3) base
+    */
+    double** m = calloc(3, sizeof(double*));
+    for(int i=0; i<3; i++){
+        m[i] = calloc(3, sizeof(double));
+    }
+
+    m[0][0] = e1.x;
+    m[1][0] = e1.y;
+    m[2][0] = e1.z;
+
+    m[0][1] = e2.x;
+    m[1][1] = e2.y;
+    m[2][1] = e2.z;
+
+    m[0][2] = e3.x;
+    m[1][2] = e3.y;
+    m[2][2] = e3.z;
+
+    m = transpose(m, 3);
+    return m;
+}
+
+vec3 multiply_matrix_vector_3D(double** m, vec3 v){
+    vec3 p;
+    p.x = m[0][0]*v.x + m[0][1]*v.y + m[0][2]*v.z;
+    p.y = m[1][0]*v.x + m[1][1]*v.y + m[1][2]*v.z;
+    p.z = m[2][0]*v.x + m[2][1]*v.y + m[2][2]*v.z;
+    return p;
+}
+
+void free_matrix(int n, double **m){
+    for(int i = 0; i<n; i++) free(m[i]);
+    free(m);
+}
+
+
 vec2 get_bottom_right_corner(triangle2D t){
     vec2 br = {t.v1.x, t.v1.y};
     if (t.v2.x > br.x) br.x = t.v2.x;
@@ -271,17 +317,4 @@ bool is_point_inside_triangle(triangle2D t, vec2 v){
     has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
     return !(has_neg && has_pos);
-}
-
-vec3 multiply_matrix_vector_3D(double** m, vec3 v){
-    vec3 p;
-    p.x = m[0][0]*v.x + m[0][1]*v.y + m[0][2]*v.z;
-    p.y = m[1][0]*v.x + m[1][1]*v.y + m[1][2]*v.z;
-    p.z = m[2][0]*v.x + m[2][1]*v.y + m[2][2]*v.z;
-    return p;
-}
-
-void free_matrix(int n, int **m){
-    for(int i = 0; i<n; i++) free(m[i]);
-    free(m);
 }
