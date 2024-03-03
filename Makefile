@@ -1,32 +1,16 @@
-# Compiler
 CC = gcc
-
-# Compiler flags
-CFLAGS = -Wall -Wextra -g
-
-# Source files
-SRCS = main.c engine.c math.c
-
-# Object files
-OBJS = $(SRCS:.c=.o)
-
-# Executable
+CFLAGS = -Wall -Wextra -Werror -lncurses
+DEPS = engine/engine.h utils/math.h
+OBJ = main.o engine/engine.o utils/math.o
 TARGET = main
 
-# Default target
-all: $(TARGET)
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-tests: engine.o math.o
-	$(CC) $(CFLAGS) $^ tests.c -o $@
+$(TARGET): $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-# Compile source files into object files
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+.PHONY: clean
 
-# Link object files into executable
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
-
-# Clean up object files and executable
 clean:
-	rm -f $(OBJS) $(TARGET) tests tests.o
+	rm -f $(OBJ) $(TARGET)
