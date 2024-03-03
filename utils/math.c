@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 03-03-2024 23:09:22
+ *  Last modified : 03-03-2024 23:17:19
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,15 +128,6 @@ void print_triangle2D(triangle2D t){
 void print_triangle3D(triangle3D t){
     printf("(%.2f, %.2f, %.2f) (%.2f, %.2f, %.2f) (%.2f, %.2f, %.2f)\n",
         t.v1.x, t.v1.y, t.v1.z, t.v2.x, t.v2.y, t.v2.z, t.v3.x, t.v3.y, t.v3.z);
-}
-
-triangle3D project_triangle_on_hyperplan(triangle3D t, vec3 n){
-    triangle3D r = {
-        project_vec_on_hyperplan(t.v1, n),
-        project_vec_on_hyperplan(t.v2, n),
-        project_vec_on_hyperplan(t.v3, n),
-    };
-    return r;
 }
 
 triangle2D project_triangle3D_to_2D(triangle3D t){
