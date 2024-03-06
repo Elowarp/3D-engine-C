@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 06-03-2024 20:11:57
+ *  Last modified : 06-03-2024 20:54:20
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,14 +128,6 @@ camera* init_camera(){
     cam->v2 = v2;
     cam->v3 = v3;
     return cam;
-}
-
-vec3 rotate_vec(vec3 v, vec3 origin, double** r){
-    /* Rotates a vector by the rotation matrix r */
-    vec3 res;
-    res =  multiply_matrix_vector_3D(r, sub_vec3(v, origin));
-    return add_vec3(res, origin); 
-
 }
 
 void rotate_camera_around_z(camera* c, int sign){
