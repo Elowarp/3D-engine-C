@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 06-03-2024 16:15:23
+ *  Last modified : 06-03-2024 20:11:57
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,6 +130,14 @@ camera* init_camera(){
     return cam;
 }
 
+vec3 rotate_vec(vec3 v, vec3 origin, double** r){
+    /* Rotates a vector by the rotation matrix r */
+    vec3 res;
+    res =  multiply_matrix_vector_3D(r, sub_vec3(v, origin));
+    return add_vec3(res, origin); 
+
+}
+
 void rotate_camera_around_z(camera* c, int sign){
     // Vector and rotation matrix multiplication
     double** r = rotation_matrix_z(sign*ANGLE_ROTATION);
@@ -144,35 +152,47 @@ void rotate_camera_around_z(camera* c, int sign){
 void moveCamera(camera *cam, char command){
     switch (command)    {
     case 'z':
-        cam->pos.y += 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v2, 0.25));
         break;
 
     case 's':
-        cam->pos.y -= 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v2, -0.25));
         break;
 
     case 'q':
-        cam->pos.x -= 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v1, -0.25));
         break;
 
     case 'd':
-        cam->pos.x += 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v1, 0.25));
         break;
     
     case 'a':
-        cam->pos.z += 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v3, 0.25));
         break;
 
     case 'e':
-        cam->pos.z -= 0.25;
+        cam->pos = add_vec3(cam->pos, mul_vec3(cam->v3, -0.25));
         break;
 
     case 'c':
-        rotate_camera_around_z(cam, 1);
+        rotate_camera_around_z(cam, -1);
         break;
 
     case 'w':
-        rotate_camera_around_z(cam, -1);
+        rotate_camera_around_z(cam, 1);
+        break;
+
+    case 'r':
+        vec3 pos = {0, 0, 0};
+        vec3 v1 = {1, 0, 0};
+        vec3 v2 = {0, 1, 0};
+        vec3 v3 = {0, 0, 1};
+        
+        cam->pos = pos;
+        cam->v1 = v1;
+        cam->v2 = v2;
+        cam->v3 = v3;
         break;
 
     default:
@@ -185,13 +205,21 @@ triangle3D changeReferenceToCamera(camera* cam, triangle3D t){
     Cast coordinates from the canonic base into the camera base 
     (made of the vectors v1, v2 and v3)
     */
-    triangle3D r;
+    triangle3D r = t;
 
     double** p = transition_matrix(cam->v1, cam->v2, cam->v3);
 
-    r.v1 = multiply_matrix_vector_3D(p, t.v1);
-    r.v2 = multiply_matrix_vector_3D(p, t.v2);
-    r.v3 = multiply_matrix_vector_3D(p, t.v3);
+    r.v1 = sub_vec3(r.v1, cam->pos);
+    r.v2 = sub_vec3(r.v2, cam->pos);
+    r.v3 = sub_vec3(r.v3, cam->pos);
+
+    r.v1 = multiply_matrix_vector_3D(p, r.v1);
+    r.v2 = multiply_matrix_vector_3D(p, r.v2);
+    r.v3 = multiply_matrix_vector_3D(p, r.v3);
+
+    r.v1 = add_vec3(r.v1, cam->pos);
+    r.v2 = add_vec3(r.v2, cam->pos);
+    r.v3 = add_vec3(r.v3, cam->pos);
 
     free_matrix(3, p);
     return r;
@@ -199,7 +227,7 @@ triangle3D changeReferenceToCamera(camera* cam, triangle3D t){
 
 void print_camera_infos(camera* cam){
     printf("Position camera : ");print_vec3(cam->pos);printf("\n");
-    printf("Vecteur normal : ");print_vec3(cam->v2);printf("\n");
+    print_vec3(cam->v1);print_vec3(cam->v2);print_vec3(cam->v3);printf("\n");
 }
 
 void free_camera(camera *cam){
@@ -219,11 +247,12 @@ scene* init_scene(int n){
 }
 
 void render(screen* scr, scene* s){
+    clear_screen(scr);
+    
     for(int i = 0; i < s->n; i++){
         // /!\ no distinction between triangles shown and the others
         triangle3D t = changeReferenceToCamera(s->cam, s->objects[i]);
         
-        // triangle3D t = s->objects[i];
         t.v1 = sub_vec3(t.v1, s->cam->pos);
         t.v2 = sub_vec3(t.v2, s->cam->pos);
         t.v3 = sub_vec3(t.v3, s->cam->pos);

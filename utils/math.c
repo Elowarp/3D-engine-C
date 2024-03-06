@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 06-03-2024 16:10:25
+ *  Last modified : 06-03-2024 20:07:52
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -230,7 +230,7 @@ double** transpose(double** t, int n){
         }
     }
 
-    return t;
+    return m;
 }
 
 double** transition_matrix(vec3 e1, vec3 e2, vec3 e3){

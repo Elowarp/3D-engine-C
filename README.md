@@ -18,6 +18,7 @@ Les différentes touches :
 - `a` Monter
 - `c` Se tourner vers la droite
 - `w` Se tourner vers la gauche
+- `r` Revenir à l'origine
 
 Compiler et exécuter le projet :
 

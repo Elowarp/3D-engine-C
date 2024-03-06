@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 06-03-2024 16:15:50
+ *  Last modified : 06-03-2024 20:09:18
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +42,6 @@ int main(){
             change_size_screen(scr, w.ws_col, w.ws_row-1);
         }
 
-        clear_screen(scr);
         render(scr, s);
         
         moveCamera(s->cam, getchar());
