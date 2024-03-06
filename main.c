@@ -1,15 +1,12 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 03-03-2024 23:06:28
+ *  Last modified : 06-03-2024 16:15:50
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/ioctl.h>
-#include <time.h>
-#include <errno.h>  
-#include <curses.h> 
 #include <ncurses.h> 
 
 #include "./engine/engine.h"

@@ -2,6 +2,7 @@
 *.o
 .vscode/*
 =======
+main
 .vscode/*
 # Prerequisites
 *.d

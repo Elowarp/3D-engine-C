@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 03-03-2024 22:59:47
+ *  Last modified : 06-03-2024 16:10:22
  */
 
 #ifndef MATH_H
@@ -72,6 +72,7 @@ double** mul_matrix(double** m, double** n, int i, int j, int k);
 double** transpose(double** t, int n);
 double** transition_matrix(vec3 e1, vec3 e2, vec3 e3);
 vec3 multiply_matrix_vector_3D(double** m, vec3 v);
+void print_matrix(int rows, int cols, double** matrix);
 void free_matrix(int n, double **m);
 
 #endif

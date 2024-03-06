@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 03-03-2024 23:17:19
+ *  Last modified : 06-03-2024 16:10:25
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 
 const vec2 UNDEFINED_VEC2 = {__FLT_MAX__, __FLT_MAX__};
 const vec3 UNDEFINED_VEC3 = {__FLT_MAX__, __FLT_MAX__, __FLT_MAX__};
-
+const double EPSILON = 0.0001;
 
 // 2D Vectors
 vec2 add_vec2(vec2 v1, vec2 v2){
@@ -92,8 +92,12 @@ double prod_vec3(vec3 v, vec3 u){
     return v.x*u.x + v.y*u.y + v.z*u.z;
 }
 
+
+
 vec2 projection_to_2D(vec3 v){
-    if (v.y == 0) return UNDEFINED_VEC2;
+    // Solves the issue of divising by 0
+    if (v.y < EPSILON && v.y > - EPSILON) return UNDEFINED_VEC2;
+
     vec2 res = {v.x/v.y, v.z/v.y};
     return res;
 }
@@ -119,10 +123,11 @@ bool is_undefined_triangle3D(triangle3D t){
         || is_undefined_vec3(t.v3);
 }
 
-
 void print_triangle2D(triangle2D t){
-    printf("(%.2f, %.2f) (%.2f, %.2f) (%.2f, %.2f)\n",
-        t.v1.x, t.v1.y, t.v2.x, t.v2.y, t.v3.x, t.v3.y);
+    if (is_undefined_triangle2D(t)) printf("Undefined Triangle.\n");
+    else
+        printf("(%.2f, %.2f) (%.2f, %.2f) (%.2f, %.2f)\n",
+            t.v1.x, t.v1.y, t.v2.x, t.v2.y, t.v3.x, t.v3.y);
 }
 
 void print_triangle3D(triangle3D t){
@@ -134,8 +139,9 @@ triangle2D project_triangle3D_to_2D(triangle3D t){
     triangle2D r = {
         projection_to_2D(t.v1),
         projection_to_2D(t.v2),
-        projection_to_2D(t.v3)
+        projection_to_2D(t.v3),
     };
+
     return r;
 }
 
@@ -259,6 +265,15 @@ vec3 multiply_matrix_vector_3D(double** m, vec3 v){
     p.y = m[1][0]*v.x + m[1][1]*v.y + m[1][2]*v.z;
     p.z = m[2][0]*v.x + m[2][1]*v.y + m[2][2]*v.z;
     return p;
+}
+
+void print_matrix(int rows, int cols, double** matrix) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%lf ", matrix[i][j]);
+        }
+        printf("\n");
+    }
 }
 
 void free_matrix(int n, double **m){

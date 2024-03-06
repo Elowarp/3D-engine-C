@@ -1,11 +1,10 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 03-03-2024 23:10:15
+ *  Last modified : 06-03-2024 16:15:23
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 
 #include "engine.h"
@@ -78,7 +77,9 @@ vec2 vec2_to_screen(screen *s, vec2 v){
 }
 
 triangle2D triangle2D_to_screen(screen *s, triangle2D t){
-    if (is_undefined_triangle2D(t)) return t;
+    if (is_undefined_triangle2D(t)){
+        return t;
+    }
     
     t.v1 = vec2_to_screen(s, t.v1);
     t.v2 = vec2_to_screen(s, t.v2);
@@ -166,11 +167,11 @@ void moveCamera(camera *cam, char command){
         cam->pos.z -= 0.25;
         break;
 
-    case 'w':
+    case 'c':
         rotate_camera_around_z(cam, 1);
         break;
 
-    case 'c':
+    case 'w':
         rotate_camera_around_z(cam, -1);
         break;
 
@@ -221,11 +222,15 @@ void render(screen* scr, scene* s){
     for(int i = 0; i < s->n; i++){
         // /!\ no distinction between triangles shown and the others
         triangle3D t = changeReferenceToCamera(s->cam, s->objects[i]);
-
+        
+        // triangle3D t = s->objects[i];
         t.v1 = sub_vec3(t.v1, s->cam->pos);
         t.v2 = sub_vec3(t.v2, s->cam->pos);
         t.v3 = sub_vec3(t.v3, s->cam->pos);
-        
+                
+        // Checks if the triangle is behind the camera or not
+        if (t.v1.y <= 0 || t.v2.y <= 0 || t.v3.y <= 0) continue;
+
         triangle2D t2 = project_triangle3D_to_2D(t);
         draw_triangle2D(scr, triangle2D_to_screen(scr, t2));
     }
