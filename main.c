@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 06-03-2024 20:09:18
+ *  Last modified : 30-03-2024 16:53:07
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +34,11 @@ int main(){
     vec3 v3 = {0.5,  2, -0.5};
 
     triangle3D t = {v1, v2, v3};
-    s->objects[0] = t;
+    
+    triangle3D* mesh = calloc(1, sizeof(triangle3D));
+    mesh[0] = t;
+
+    addMesh(s, mesh, 1);
     
     while(true){   
         if (has_screen_modified_size(scr, w)){

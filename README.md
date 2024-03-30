@@ -23,3 +23,8 @@ Compiler et exécuter le projet :
 ```bash
 make main && ./main
 ```
+
+## Idées d'approfondissement
+
+- Changement de la représentation de la scène par un arbre binaire de recherche (découpage de l'espace en sous sections comme doom il me semble ?)
+- Ajout de fichier `obj`

@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 06-03-2024 20:07:52
+ *  Last modified : 30-03-2024 18:49:30
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,7 +92,25 @@ double prod_vec3(vec3 v, vec3 u){
     return v.x*u.x + v.y*u.y + v.z*u.z;
 }
 
+// To rename & comment
+vec3 linePlaneCollision(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2){
+    vec3 u = sub_vec3(v2, v1);
+    double dp = prod_vec3(u, normal);
 
+    // If parallel then no intersection
+    if (fabs(dp) < EPSILON){
+        vec3 null = {0, 0, 0};
+        return null;
+    } 
+
+    vec3 w = sub_vec3(v1, planePoint);
+    double si = -prod_vec3(w, normal)/dp;
+
+    u = mul_vec3(u, si);
+    return add_vec3(v1, u); 
+
+    
+}
 
 vec2 projection_to_2D(vec3 v){
     // Solves the issue of divising by 0

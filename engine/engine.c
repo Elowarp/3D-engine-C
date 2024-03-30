@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 06-03-2024 20:54:20
+ *  Last modified : 30-03-2024 18:49:39
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +16,7 @@ const char DEFAULT_CHAR = ' ';
 const float ASPECT_RATIO_CHARACTER_SHELL = 1.5;
 
 const float ANGLE_ROTATION = 10;
+const double PROXIMITY = 0.5;
 
 
 // Screens
@@ -222,6 +223,10 @@ void print_camera_infos(camera* cam){
     print_vec3(cam->v1);print_vec3(cam->v2);print_vec3(cam->v3);printf("\n");
 }
 
+vec3 getCameraLookingAt(camera* cam){
+    return cam->v2;
+}
+
 void free_camera(camera *cam){
     free(cam);
 }
@@ -231,31 +236,168 @@ void free_camera(camera *cam){
 scene* init_scene(int n){
     scene* s = calloc(1, sizeof(scene));
 
-    s->n = n;
-    s->objects = calloc(s->n, sizeof(triangle3D));
+    s->capacity = n;
+    s->size = 0;
+
+    s->objects = calloc(s->capacity, sizeof(triangle3D));
     s->cam = init_camera(0, 0, 0);
 
     return s;
 }
 
+void in_out_points(triangle3D t, vec3 planePoint, vec3 normal, vec3* in, vec3* out, 
+    int* nb_in, int* nb_out){
+    /*
+        Computes the points of the triangle that can be seen (in array)
+        or that are too close to the camera to be shown (out array). 
+        The border being the `p` point
+        It puts the size of the array respectively in `nb_in` and `nb_out`
+    */
+    // Dot product of the points of the triangle and the point p to 
+    // know if the point is out of the range of view(too close to 
+    // the camera) or not 
+    float p_v1 = prod_vec3(sub_vec3(planePoint, t.v1), normal);
+    float p_v2 = prod_vec3(sub_vec3(planePoint, t.v2), normal);
+    float p_v3 = prod_vec3(sub_vec3(planePoint, t.v3), normal);
+
+    if (p_v1 < 0){
+        in[*nb_in] = t.v1;
+        (*nb_in)++;
+    } else {
+        out[*nb_out] = t.v1;
+        (*nb_out)++;
+    }
+
+    if (p_v2 < 0){
+        in[*nb_in] = t.v2;
+        (*nb_in)++;
+    } else {
+        out[*nb_out] = t.v2;
+        (*nb_out)++;
+    }
+
+    if (p_v3 < 0){
+        in[*nb_in] = t.v3;
+        (*nb_in)++;
+    } else {
+        out[*nb_out] = t.v3;
+        (*nb_out)++;
+    }
+}
+
+triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
+    /*
+        Takes a 3DTriangle array `objects` of size `n` and a camera to 
+        return an array of 3Dtriangle of size `nbTriangles` that should be 
+        drawn on the screen (Cutting, in some case, triangles by half)
+    */
+
+    // Point in the limit plane
+    vec3 planePoint = add_vec3(cam->pos, mul_vec3(getCameraLookingAt(cam), PROXIMITY));
+    
+    // Todo : Resizable array
+    // Triangles that will be shown
+    triangle3D* results = calloc(n, sizeof(triangle3D));
+    *nbTriangles = 0;
+    
+    for(int i = 0; i<n; i++){
+        triangle3D t = objects[i];
+        
+        vec3* in = calloc(3, sizeof(vec3));
+        vec3* out = calloc(3, sizeof(vec3));
+
+        int nb_in = 0;
+        int nb_out = 0;
+
+        in_out_points(t, planePoint, getCameraLookingAt(cam),
+            in, out, &nb_in, &nb_out);
+
+        // If the triangle is totally visible
+        if (nb_out == 0) {
+            results[*nbTriangles] = t;
+            (*nbTriangles)++;
+            continue;
+        }
+
+        // If the triangle is totally hidden
+        if (nb_out == 3) continue;
+
+        // Computes 2 points of the limit plane to create 2 new triangles
+        // that are in the visible area 
+        if (nb_out == 1){
+            vec3 planeV1 = linePlaneCollision(getCameraLookingAt(cam), 
+                                planePoint, out[0], in[0]);
+            vec3 planeV2 = linePlaneCollision(getCameraLookingAt(cam), 
+                                planePoint, out[0], in[1]);
+        
+            triangle3D t1 = {planeV1, in[0], planeV2};
+            triangle3D t2 = {planeV2, in[0], in[1]};
+
+            results[*nbTriangles] = t1;
+            (*nbTriangles)++;
+            
+            results[*nbTriangles] = t2;
+            (*nbTriangles)++;
+
+            continue;
+        }
+        // Comments
+        if (nb_out == 2){
+            vec3 planeV1 = linePlaneCollision(getCameraLookingAt(cam), 
+                                planePoint, out[0], in[0]);
+            vec3 planeV2 = linePlaneCollision(getCameraLookingAt(cam), 
+                                planePoint, out[1], in[0]);
+                                
+            triangle3D t1 = {planeV1, planeV2, in[0]};
+            
+            results[*nbTriangles] = t1;
+            (*nbTriangles)++;
+            continue;
+        }
+    }
+    
+    return results;
+}   
+
 void render(screen* scr, scene* s){
     clear_screen(scr);
+
+    int n = 0;
+    triangle3D* clipped_triangles = clip(s->objects, s->size, s->cam, &n);
     
-    for(int i = 0; i < s->n; i++){
+    for(int i = 0; i < n; i++){
         // /!\ no distinction between triangles shown and the others
-        triangle3D t = changeReferenceToCamera(s->cam, s->objects[i]);
+        triangle3D t = changeReferenceToCamera(s->cam, clipped_triangles[i]);
         
         t.v1 = sub_vec3(t.v1, s->cam->pos);
         t.v2 = sub_vec3(t.v2, s->cam->pos);
         t.v3 = sub_vec3(t.v3, s->cam->pos);
                 
         // Checks if the triangle is behind the camera or not
-        if (t.v1.y <= 0 || t.v2.y <= 0 || t.v3.y <= 0) continue;
+        // if (t.v1.y <= 0 || t.v2.y <= 0 || t.v3.y <= 0) continue;
 
         triangle2D t2 = project_triangle3D_to_2D(t);
         draw_triangle2D(scr, triangle2D_to_screen(scr, t2));
     }
     update_screen(scr);
+}
+
+void addMesh(scene* s, triangle3D* mesh, int n){
+    /*
+    Adds a mesh (an array of 3D Triangles) to the scene
+    
+    `s` : Scene
+    `mesh` : Array of 3DTriangle
+    `n` :  Size of the array
+    */
+    // Temporary solution before adding resizable array
+    if (s->capacity < s->size + n) printf("Warning : No space left");
+
+    for(int i = 0; i < n; i++){
+        s->objects[s->size + i] = mesh[i];
+    }
+
+    s->size += n;
 }
 
 void free_scene(scene* s){

@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 03-03-2024 22:58:13
+ *  Last modified : 30-03-2024 18:17:29
  */
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -22,7 +22,8 @@ typedef struct {
 } camera;
 
 typedef struct {
-    int n;
+    int capacity;
+    int size;
     camera* cam;
     triangle3D* objects;
 } scene;
@@ -42,11 +43,13 @@ void free_screen(screen *s);
 camera* init_camera();
 void moveCamera(camera *cam, char command);
 void print_camera_infos(camera* cam);
+vec3 getCameraLookingAt(camera* cam);
 void free_camera(camera *cam);
 
 // Scene
 scene* init_scene(int n);
 void render(screen* scr, scene* s);
+void addMesh(scene* s, triangle3D* mesh, int n);
 void free_scene(scene* s);
 
 #endif

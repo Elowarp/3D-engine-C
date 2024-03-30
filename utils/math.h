@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 06-03-2024 16:10:22
+ *  Last modified : 30-03-2024 18:03:14
  */
 
 #ifndef MATH_H
@@ -20,6 +20,7 @@ typedef struct {
     float z;
 } vec3;
 
+// Orientation convention : Clockwise direction 
 typedef struct {
     vec2 v1;
     vec2 v2;
@@ -46,6 +47,7 @@ vec3 sub_vec3(vec3 v1, vec3 v2);
 vec3 mul_vec3(vec3 v, float s);
 vec3 div_vec3(vec3 v, int s);
 double prod_vec3(vec3 v, vec3 u);
+vec3 linePlaneCollision(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2);
 vec3 normalize_vec3(vec3 v);
 void print_vec3(vec3 v);
 bool is_undefined_vec3(vec3 v);
