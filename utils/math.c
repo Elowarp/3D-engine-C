@@ -1,18 +1,17 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 30-03-2024 18:49:30
+ *  Last modified : 01-04-2024 16:28:24
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 
 #include "math.h"
 #define PI 3.141592654
 
-const vec2 UNDEFINED_VEC2 = {__FLT_MAX__, __FLT_MAX__};
-const vec3 UNDEFINED_VEC3 = {__FLT_MAX__, __FLT_MAX__, __FLT_MAX__};
 const double EPSILON = 0.0001;
 
 // 2D Vectors
@@ -30,14 +29,14 @@ vec2 sub_vec2(vec2 v1, vec2 v2){
     return r;
 }
 
-vec2 mul_vec2(vec2 v, float s){
+vec2 mul_vec2(vec2 v, double s){
     v.x *= s;
     v.y *= s;
     return v;
 }
 
-vec2 div_vec2(vec2 v, int s){
-    if (s==0) return UNDEFINED_VEC2;
+vec2 div_vec2(vec2 v, double s){
+    assert(s!=0);
 
     v.x /= s;
     v.y /= s;
@@ -46,10 +45,6 @@ vec2 div_vec2(vec2 v, int s){
 
 void print_vec2(vec2 v){
     printf("{x: %.2f, y: %.2f}", v.x, v.y);
-}
-
-bool is_undefined_vec2(vec2 v){
-    return v.x == UNDEFINED_VEC2.x || v.y == UNDEFINED_VEC2.y; 
 }
 
 
@@ -71,15 +66,15 @@ vec3 sub_vec3(vec3 v1, vec3 v2){
     return r;
 }
 
-vec3 mul_vec3(vec3 v, float s){
+vec3 mul_vec3(vec3 v, double s){
     v.x *= s;
     v.y *= s;
     v.z *= s;
     return v;
 }
 
-vec3 div_vec3(vec3 v, int s){
-    if (s==0) return UNDEFINED_VEC3;
+vec3 div_vec3(vec3 v, double s){
+    assert(fabs(s)>EPSILON);
     
     v.x /= s;
     v.y /= s;
@@ -87,15 +82,46 @@ vec3 div_vec3(vec3 v, int s){
     return v;
 }
 
-double prod_vec3(vec3 v, vec3 u){
-    // Scalar product
+/*
+Dot product
+*/
+double dot_vec3(vec3 v, vec3 u){
     return v.x*u.x + v.y*u.y + v.z*u.z;
 }
 
-// To rename & comment
-vec3 linePlaneCollision(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2){
+/*
+Cross product
+*/
+vec3 cross_vec3(vec3 v, vec3 u){
+    vec3 p = {
+        v.y * u.z - v.z * u.y,
+        v.z * u.x - v.x * u.z,
+        v.x * u.y - v.y * u.x
+    };
+    
+    return p;
+}
+
+/*
+Returns the normal vector of the surface of a triangle
+*/
+vec3 normal_surface(triangle3D t){
+    vec3 line1 = sub_vec3(t.v2, t.v1);
+    vec3 line2 = sub_vec3(t.v3, t.v1);
+
+    vec3 normal = cross_vec3(line2, line1);
+    return normal;
+}
+
+
+/*
+    Returns a point at the intersection of a plane (described by a point 
+    `planePoint` and its normal vector `normal`) and a line (described
+    by the two edges `v1` and `v2`)
+*/
+vec3 point_intersec_plane_line(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2){
     vec3 u = sub_vec3(v2, v1);
-    double dp = prod_vec3(u, normal);
+    double dp = dot_vec3(u, normal);
 
     // If parallel then no intersection
     if (fabs(dp) < EPSILON){
@@ -104,17 +130,15 @@ vec3 linePlaneCollision(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2){
     } 
 
     vec3 w = sub_vec3(v1, planePoint);
-    double si = -prod_vec3(w, normal)/dp;
+    double si = -dot_vec3(w, normal)/dp;
 
     u = mul_vec3(u, si);
-    return add_vec3(v1, u); 
-
-    
+    return add_vec3(v1, u);     
 }
 
 vec2 projection_to_2D(vec3 v){
-    // Solves the issue of divising by 0
-    if (v.y < EPSILON && v.y > - EPSILON) return UNDEFINED_VEC2;
+    // Prevents the division by 0
+    assert (fabs(v.y) > EPSILON);
 
     vec2 res = {v.x/v.y, v.z/v.y};
     return res;
@@ -124,27 +148,14 @@ void print_vec3(vec3 v){
     printf("{x: %.2f, y: %.2f, z: %.2f}", v.x, v.y, v.z);
 }
 
-bool is_undefined_vec3(vec3 v){
-    return v.x == UNDEFINED_VEC3.x || v.y == UNDEFINED_VEC3.y 
-        || v.z == UNDEFINED_VEC3.z; 
+vec3 normalize(vec3 v){
+    double norm = sqrt(dot_vec3(v, v));
+    return div_vec3(v, norm);
 }
-
 
 // Triangles
-bool is_undefined_triangle2D(triangle2D t){
-    return is_undefined_vec2(t.v1) || is_undefined_vec2(t.v2)
-        || is_undefined_vec2(t.v3);
-}
-
-bool is_undefined_triangle3D(triangle3D t){
-    return is_undefined_vec3(t.v1) || is_undefined_vec3(t.v2)
-        || is_undefined_vec3(t.v3);
-}
-
 void print_triangle2D(triangle2D t){
-    if (is_undefined_triangle2D(t)) printf("Undefined Triangle.\n");
-    else
-        printf("(%.2f, %.2f) (%.2f, %.2f) (%.2f, %.2f)\n",
+    printf("(%.2f, %.2f) (%.2f, %.2f) (%.2f, %.2f)\n",
             t.v1.x, t.v1.y, t.v2.x, t.v2.y, t.v3.x, t.v3.y);
 }
 
@@ -251,11 +262,11 @@ double** transpose(double** t, int n){
     return m;
 }
 
+/*
+Returns the transition matrix (which is orthogonal) of the canonic base into the 
+(e1, e2, e3) base
+*/
 double** transition_matrix(vec3 e1, vec3 e2, vec3 e3){
-    /*
-    Returns the transition matrix (which is orthogonal) of the  canonic base into the 
-    (e1, e2, e3) base
-    */
     double** m = calloc(3, sizeof(double*));
     for(int i=0; i<3; i++){
         m[i] = calloc(3, sizeof(double));
@@ -323,12 +334,12 @@ vec2 get_top_left_corner(triangle2D t){
 }
 
 
-// Solution from 
-// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
 float sign (vec2 v1, vec2 v2, vec2 v3){
     return (v1.x - v3.x) * (v2.y - v3.y) - (v2.x - v3.x) * (v1.y - v3.y);
 }
 
+// Solution from 
+// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
 bool is_point_inside_triangle(triangle2D t, vec2 v){
     float d1, d2, d3;
     bool has_neg, has_pos;

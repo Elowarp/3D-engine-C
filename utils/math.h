@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 30-03-2024 18:03:14
+ *  Last modified : 01-04-2024 16:27:23
  */
 
 #ifndef MATH_H
@@ -36,29 +36,27 @@ typedef struct {
 // 2D Vector
 vec2 add_vec2(vec2 v1, vec2 v2);
 vec2 sub_vec2(vec2 v1, vec2 v2);
-vec2 mul_vec2(vec2 v, float s);
-vec2 div_vec2(vec2 v, int s);
+vec2 mul_vec2(vec2 v, double s);
+vec2 div_vec2(vec2 v, double s);
 void print_vec2(vec2 v);
-bool is_undefined_vec2(vec2 v);
 
 // 3D Vector
 vec3 add_vec3(vec3 v1, vec3 v2);
 vec3 sub_vec3(vec3 v1, vec3 v2);
-vec3 mul_vec3(vec3 v, float s);
-vec3 div_vec3(vec3 v, int s);
-double prod_vec3(vec3 v, vec3 u);
-vec3 linePlaneCollision(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2);
-vec3 normalize_vec3(vec3 v);
+vec3 mul_vec3(vec3 v, double s);
+vec3 div_vec3(vec3 v, double s);
+double dot_vec3(vec3 v, vec3 u);
+vec3 cross_vec3(vec3 v, vec3 u);
+vec3 normal_surface(triangle3D t);
+vec3 point_intersec_plane_line(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2);
 void print_vec3(vec3 v);
-bool is_undefined_vec3(vec3 v);
+vec3 normalize(vec3 v);
 
 // 2D Triangle
-bool is_undefined_triangle2D(triangle2D t);
 triangle2D project_triangle3D_to_2D(triangle3D t);
 void print_triangle2D(triangle2D t);
 
 // 3D Triangle
-bool is_undefined_triangle3D(triangle3D t);
 void print_triangle3D(triangle3D t);
 
 // Utils triangles
