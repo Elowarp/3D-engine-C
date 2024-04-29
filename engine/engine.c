@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 01-04-2024 16:25:42
+ *  Last modified : 29-04-2024 16:42:45
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,14 +14,14 @@ extern const vec2 UNDEFINED_VEC2;
 extern const vec3 UNDEFINED_VEC3;
 
 const char DEFAULT_CHAR = ' ';
-const float ASPECT_RATIO_CHARACTER_SHELL = 1.5;
 
 const float ANGLE_ROTATION = 10;
-const double PROXIMITY = 0.5;
+const double PROXIMITY = 0.1;
 
 const int nbChar = 7;
 const char* lightGradient = ".,;la#@";
 
+float ASPECT_RATIO_CHARACTER_SHELL = 2.2;
 
 // Screens
 screen* init_screen(int width, int height){
@@ -32,6 +32,9 @@ screen* init_screen(int width, int height){
     for(int i=0; i<width*height; i++){
         s->pixels[i] = DEFAULT_CHAR;
     }
+    
+    s->aspect_ratio_character = ASPECT_RATIO_CHARACTER_SHELL;
+    printf("%f\n", s->aspect_ratio_character);
     return s;
 }
 
@@ -69,7 +72,7 @@ void change_pixel(screen *s, vec2 v, char c){
 
 vec2 vec2_to_screen(screen *s, vec2 v){
     // Normalization
-    v.x = ASPECT_RATIO_CHARACTER_SHELL * ((float) s->height/ (float) s->width) * v.x + 1.0;
+    v.x = s->aspect_ratio_character * ((float) s->height/ (float) s->width) * v.x + 1.0;
     v.y = -v.y + 1.0;
 
     // To screen size
@@ -258,9 +261,9 @@ scene* init_scene(int n){
     It puts the size of the array respectively in `nb_in` and `nb_out`
 */
 void in_out_points(triangle3D t, vec3 planePoint, vec3 normal, vec3* in, vec3* out, 
+    int* nb_in, int* nb_out, bool* is_inverted){
     // May refactor this function in multiple functions
 
-    int* nb_in, int* nb_out, bool* is_inverted){
     // Dot product of the points of the triangle and the point p to 
     // know if the point is out of the range of view(too close to 
     // the camera) or not 
@@ -321,6 +324,8 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
     
     for(int i = 0; i<n; i++){
         triangle3D t = objects[i];
+
+        if (!is_visible(t, cam)) continue;
         
         vec3* in = calloc(3, sizeof(vec3));
         vec3* out = calloc(3, sizeof(vec3));
@@ -334,10 +339,8 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
 
         // If the triangle is totally visible
         if (nb_out == 0) {
-            if (is_visible(t, cam)){
-                results[*nbTriangles] = t;
-                (*nbTriangles)++;
-            }
+            results[*nbTriangles] = t;
+            (*nbTriangles)++;
         }
 
         // If the triangle is totally hidden
@@ -417,21 +420,22 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
 void render(screen* scr, scene* s, lightSource source){
     clear_screen(scr);
 
-    int n = 0;
+    int n = 0; // Number of triangles to be shown
     triangle3D* clipped_triangles = clip(s->objects, s->size, s->cam, &n);
     
     lightSource newSource;
     newSource.pos = changeVec3ReferenceToCamera(s->cam, source.pos); 
 
     for(int i = 0; i < n; i++){
-        triangle3D t = changeTriangleReferenceToCamera(s->cam, clipped_triangles[i]);
-        char lightStrength = diffuseLight(newSource, normal_surface(t), t.v1);
+        triangle3D t = clipped_triangles[i];
+        triangle3D t_cam = changeTriangleReferenceToCamera(s->cam, t);
+        char lightStrength = diffuseLight(newSource, normal_surface(t_cam), t_cam.v1);
         
-        t.v1 = sub_vec3(t.v1, s->cam->pos);
-        t.v2 = sub_vec3(t.v2, s->cam->pos);
-        t.v3 = sub_vec3(t.v3, s->cam->pos);
+        t_cam.v1 = sub_vec3(t_cam.v1, s->cam->pos);
+        t_cam.v2 = sub_vec3(t_cam.v2, s->cam->pos);
+        t_cam.v3 = sub_vec3(t_cam.v3, s->cam->pos);
 
-        triangle2D t2 = project_triangle3D_to_2D(t);
+        triangle2D t2 = project_triangle3D_to_2D(t_cam);
         draw_triangle2D(scr, triangle2D_to_screen(scr, t2), lightStrength);
     }
     update_screen(scr);

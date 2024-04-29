@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 01-04-2024 15:49:57
+ *  Last modified : 01-04-2024 20:02:17
  */
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -12,6 +12,7 @@ typedef struct {
     int width;
     int height;
     char* pixels;
+    double aspect_ratio_character;
 } screen;
 
 typedef struct {

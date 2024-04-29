@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 01-04-2024 16:18:18
+ *  Last modified : 01-04-2024 20:20:41
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ int main(){
     
     // Engine initialization
     screen* scr = init_screen(w.ws_col, w.ws_row-1);
-    scene* s = init_scene(60);
+    scene* s = init_scene(256);
 
     // Creates a light source
     lightSource l;
