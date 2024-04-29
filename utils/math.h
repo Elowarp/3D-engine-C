@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 01-04-2024 16:27:23
+ *  Last modified : 29-04-2024 20:01:27
  */
 
 #ifndef MATH_H
@@ -47,6 +47,7 @@ vec3 mul_vec3(vec3 v, double s);
 vec3 div_vec3(vec3 v, double s);
 double dot_vec3(vec3 v, vec3 u);
 vec3 cross_vec3(vec3 v, vec3 u);
+float lengthVec3(vec3 v);
 vec3 normal_surface(triangle3D t);
 vec3 point_intersec_plane_line(vec3 normal, vec3 planePoint, vec3 v1, vec3 v2);
 void print_vec3(vec3 v);
@@ -58,6 +59,7 @@ void print_triangle2D(triangle2D t);
 
 // 3D Triangle
 void print_triangle3D(triangle3D t);
+float distTriangle3DCamera(triangle3D t, vec3 v);
 
 // Utils triangles
 vec2 get_bottom_right_corner(triangle2D t);

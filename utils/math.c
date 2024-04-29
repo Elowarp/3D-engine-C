@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 01-04-2024 16:28:24
+ *  Last modified : 29-04-2024 20:01:30
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "math.h"
+
 #define PI 3.141592654
 
 const double EPSILON = 0.0001;
@@ -113,6 +114,12 @@ vec3 normal_surface(triangle3D t){
     return normal;
 }
 
+/*
+Length of a 3D vector
+*/
+float lengthVec3(vec3 v){
+    return sqrt(dot_vec3(v, v));
+}
 
 /*
     Returns a point at the intersection of a plane (described by a point 
@@ -149,8 +156,7 @@ void print_vec3(vec3 v){
 }
 
 vec3 normalize(vec3 v){
-    double norm = sqrt(dot_vec3(v, v));
-    return div_vec3(v, norm);
+    return div_vec3(v, lengthVec3(v));
 }
 
 // Triangles
@@ -172,6 +178,16 @@ triangle2D project_triangle3D_to_2D(triangle3D t){
     };
 
     return r;
+}
+
+/*
+Computes the distance between the center of mass of the triangle `t` 
+and a vector `v`
+*/
+float distTriangle3DCamera(triangle3D t, vec3 v){
+    vec3 massCenter = mul_vec3(add_vec3(t.v1, add_vec3(t.v2, t.v3)), 1/3);
+    vec3 pos = sub_vec3(massCenter, v);
+    return lengthVec3(pos);
 }
 
 

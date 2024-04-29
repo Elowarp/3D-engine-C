@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 29-04-2024 19:27:25
+ *  Last modified : 29-04-2024 20:07:41
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -404,11 +404,27 @@ resizable_array_t3D clip(resizable_array_t3D objects, camera* cam){
     return results;
 }   
 
+double* triangles3DToDistsArray(triangle3D* triangles, int n, camera* cam){
+    double* dists = calloc(n, sizeof(double));
+    for(int i = 0; i < n; i++){
+        dists[i] = distTriangle3DCamera(triangles[i], cam->pos);
+    }
+    return dists;
+}
+
 void render(screen* scr, scene* s, lightSource source){
     clear_screen(scr);
 
+    // Computes triangles to be shown
     resizable_array_t3D clipped_triangles = clip(s->objects, s->cam);
 
+    // Sorts descending the triangles by their distance to the camera 
+    // to prevent further objects going over closer objects 
+    double* dists = triangles3DToDistsArray(clipped_triangles.array, 
+        clipped_triangles.size, s->cam);
+    sortArrayDesc((void **)clipped_triangles.array, dists, clipped_triangles.size);
+
+    // Draw triangles on the screen by their relative position to the camera
     for(int i = 0; i < clipped_triangles.size; i++){
         triangle3D t = get_resizbl_arr_t3D(clipped_triangles, i);
         triangle3D t_cam = changeTriangleReferenceToCamera(s->cam, t);
