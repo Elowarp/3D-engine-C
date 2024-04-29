@@ -5,7 +5,7 @@ OBJ = engine/engine.o utils/math.o utils/data_structures.o
 TARGET = main
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -g -o $@ $< $(CFLAGS)
 
 $(TARGET):  main.o $(OBJ)
 	$(CC) -g -o $@ $^ $(CFLAGS)

@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 29-04-2024 19:27:48
+ *  Last modified : 29-04-2024 21:10:57
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,11 +28,14 @@ int main(){
     
     // Engine initialization
     screen* scr = init_screen(w.ws_col, w.ws_row-1);
-    scene* s = init_scene(256);
+    scene* s = init_scene();
+
+    vec3 pos = {0, -2, 0};
+    s->cam->pos = pos;
 
     // Creates a light source
     lightSource l;
-    vec3 lv = {5, 6, -3};
+    vec3 lv = {40, -200, 100};
     l.pos = lv;
     
     // Imports a cube from the disk

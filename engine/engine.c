@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 29-04-2024 20:07:41
+ *  Last modified : 29-04-2024 21:03:27
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -445,6 +445,8 @@ void render(screen* scr, scene* s, lightSource source){
 
 /*
     Transform a .obj file into a resizable Triangle3D array
+    See https://en.wikipedia.org/wiki/Wavefront_.obj_file for better 
+    understanding of the parsing
 */
 resizable_array_t3D loadObj(char* filepath){
     /*
@@ -463,8 +465,8 @@ resizable_array_t3D loadObj(char* filepath){
     // For each lines, if vertex or face, it will copy the entire line into
     // the corresponding array
     while (getline(&contents, &len, file) != -1) {                
-        // If vertex
-        if (contents[0] == 'v'){
+        // If vertex (and not )
+        if (contents[0] == 'v' && contents[1] == ' '){
             append_resizbl_arr_str(&vertices_char, calloc(len, sizeof(char *)));
             
             strcpy(
@@ -537,6 +539,13 @@ resizable_array_t3D loadObj(char* filepath){
 
         // Reads the line
         while(line[j] != '\0' && n_numbers < 4){
+            // Takes only the x, y and z of each 
+            // f x/xt/xn y/yt/yn z/zt/zn line
+            if (line[j] == '/'){
+                while(line[j] != ' ' && line[j] != '\0') j++;
+            }
+            printf("j %d\n", j);
+            
             if (line[j] != ' '){
                 // Converts a char into a string
                 char str[2] = "\0"; /* gives {\0, \0} */
@@ -618,6 +627,6 @@ char diffuseLight(lightSource source, vec3 normal, vec3 v){
     vec3 lightDir = sub_vec3(source.pos, v);
     
     double intensity = dot_vec3(normalize(lightDir), normalize(normal));
-    if(intensity > 0) return lightGradient[(int) round(intensity*(nbChar-1))];
+    if(intensity < 0) return lightGradient[(int) round(-intensity*(nbChar-1))];
     else return lightGradient[0];
 }
