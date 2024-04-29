@@ -1,13 +1,16 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -lncurses -lm
-DEPS = engine/engine.h utils/math.h
-OBJ = main.o engine/engine.o utils/math.o
+DEPS = engine/engine.h utils/math.h utils/data_structures.h
+OBJ = engine/engine.o utils/math.o utils/data_structures.o
 TARGET = main
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-$(TARGET): $(OBJ)
+$(TARGET):  main.o $(OBJ)
+	$(CC) -g -o $@ $^ $(CFLAGS)
+
+test: tests/tests.o $(OBJ)
 	$(CC) -g -o $@ $^ $(CFLAGS)
 
 .PHONY: clean

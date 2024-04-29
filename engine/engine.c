@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 29-04-2024 16:42:45
+ *  Last modified : 29-04-2024 19:27:25
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,18 +9,20 @@
 #include <string.h>
 
 #include "engine.h"
+#include "../utils/data_structures.h"
+
+DEFINE_RESIZABLE(triangle3D, t3D)
+DEFINE_RESIZABLE(char*, str)
+
 
 extern const vec2 UNDEFINED_VEC2;
 extern const vec3 UNDEFINED_VEC3;
 
 const char DEFAULT_CHAR = ' ';
-
 const float ANGLE_ROTATION = 10;
 const double PROXIMITY = 0.1;
-
 const int nbChar = 7;
 const char* lightGradient = ".,;la#@";
-
 float ASPECT_RATIO_CHARACTER_SHELL = 2.2;
 
 // Screens
@@ -34,7 +36,6 @@ screen* init_screen(int width, int height){
     }
     
     s->aspect_ratio_character = ASPECT_RATIO_CHARACTER_SHELL;
-    printf("%f\n", s->aspect_ratio_character);
     return s;
 }
 
@@ -239,15 +240,12 @@ void free_camera(camera *cam){
 
 // Scenes
 /*
-    Initialize a scene of `n` triangles
+    Initialize a scene
 */
-scene* init_scene(int n){
+scene* init_scene(){
     scene* s = calloc(1, sizeof(scene));
 
-    s->capacity = n;
-    s->size = 0;
-
-    s->objects = calloc(s->capacity, sizeof(triangle3D));
+    s->objects = init_resizable_array_t3D();
     s->cam = init_camera(0, 0, 0);
 
     return s;
@@ -309,21 +307,19 @@ bool is_visible(triangle3D t, camera* cam){
 }
 
 /*
-    Takes a 3DTriangle array `objects` of size `n` and a camera to 
-    return an array of 3Dtriangle of size `nbTriangles`(side effect) that should be 
+    Takes a resizable 3DTriangle array `objects` and a camera to 
+    return an resizable array of 3Dtriangle that should be 
     drawn on the screen (Cutting, in some case, triangles by half)
 */
-triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
+resizable_array_t3D clip(resizable_array_t3D objects, camera* cam){
     // Point in the limit plane
     vec3 planePoint = add_vec3(cam->pos, mul_vec3(getCameraLookingAt(cam), PROXIMITY));
     
-    // Todo : Resizable array
     // Triangles that will be shown
-    triangle3D* results = calloc(n, sizeof(triangle3D));
-    *nbTriangles = 0;
+    resizable_array_t3D results = init_resizable_array_t3D();
     
-    for(int i = 0; i<n; i++){
-        triangle3D t = objects[i];
+    for(int i = 0; i<objects.size; i++){
+        triangle3D t = get_resizbl_arr_t3D(objects, i);
 
         if (!is_visible(t, cam)) continue;
         
@@ -338,10 +334,7 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
             in, out, &nb_in, &nb_out, &is_inverted);
 
         // If the triangle is totally visible
-        if (nb_out == 0) {
-            results[*nbTriangles] = t;
-            (*nbTriangles)++;
-        }
+        if (nb_out == 0) append_resizbl_arr_t3D(&results, t);
 
         // If the triangle is totally hidden
         else if (nb_out == 3) continue;
@@ -376,15 +369,11 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
                 t2.v3 = in[1];
             }
 
-            if (is_visible(t1, cam)){
-                results[*nbTriangles] = t1;
-                (*nbTriangles)++;
-            }
+            if (is_visible(t1, cam)) 
+                append_resizbl_arr_t3D(&results, t1);
 
-            if (is_visible(t2, cam)){
-                results[*nbTriangles] = t2;
-                (*nbTriangles)++;
-            }
+            if (is_visible(t2, cam)) 
+                append_resizbl_arr_t3D(&results, t2);
         }
         
         // Computes 2 points of the limit plane to create 1 new triangle
@@ -407,10 +396,8 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
                 t1.v3 = in[0];
             }
 
-            if (is_visible(t1, cam)){
-                results[*nbTriangles] = t1;
-                (*nbTriangles)++;
-            }
+            if (is_visible(t1, cam))
+                append_resizbl_arr_t3D(&results, t1);
         }
     }
     
@@ -420,16 +407,13 @@ triangle3D* clip(triangle3D* objects, int n, camera* cam, int* nbTriangles){
 void render(screen* scr, scene* s, lightSource source){
     clear_screen(scr);
 
-    int n = 0; // Number of triangles to be shown
-    triangle3D* clipped_triangles = clip(s->objects, s->size, s->cam, &n);
-    
-    lightSource newSource;
-    newSource.pos = changeVec3ReferenceToCamera(s->cam, source.pos); 
+    resizable_array_t3D clipped_triangles = clip(s->objects, s->cam);
 
-    for(int i = 0; i < n; i++){
-        triangle3D t = clipped_triangles[i];
+    for(int i = 0; i < clipped_triangles.size; i++){
+        triangle3D t = get_resizbl_arr_t3D(clipped_triangles, i);
         triangle3D t_cam = changeTriangleReferenceToCamera(s->cam, t);
-        char lightStrength = diffuseLight(newSource, normal_surface(t_cam), t_cam.v1);
+        
+        char lightStrength = diffuseLight(source, normal_surface(t), t.v1);
         
         t_cam.v1 = sub_vec3(t_cam.v1, s->cam->pos);
         t_cam.v2 = sub_vec3(t_cam.v2, s->cam->pos);
@@ -439,64 +423,60 @@ void render(screen* scr, scene* s, lightSource source){
         draw_triangle2D(scr, triangle2D_to_screen(scr, t2), lightStrength);
     }
     update_screen(scr);
+
+    free_resizbl_arr_t3D(clipped_triangles);
 }
 
 /*
-    Transform a .obj file into a Triangle3D array of size `triangles_number`
-    (side effect)
+    Transform a .obj file into a resizable Triangle3D array
 */
-triangle3D* loadObj(char* filepath, int* triangles_number){
-
-    // Loads the file
+resizable_array_t3D loadObj(char* filepath){
+    /*
+    Loads the file and save into `vertices_char` and `faces_char` each line 
+    containing import stuff to create the mesh
+    */ 
     char* contents = NULL;
 
     FILE* file = fopen(filepath, "r");
     size_t len = 0;
 
     // Array of Arrays of words separated by a space
-    char** vertices_char = calloc(4, sizeof(char*));
-    int n_vertices = 0; 
-    int capacity_vertices = 4;
-
-    char** faces_char = calloc(4, sizeof(char*));
-    int n_faces = 0;
-    int capacity_faces = 4;
+    resizable_array_str vertices_char = init_resizable_array_str();
+    resizable_array_str faces_char = init_resizable_array_str();
     
-    // For each lines
-    while (getline(&contents, &len, file) != -1) {
-        // Resize arrays if needed
-        if (n_vertices>=capacity_vertices){
-            vertices_char = (char **) realloc(vertices_char, capacity_vertices*2*sizeof(char *));
-            capacity_vertices = capacity_vertices*2;
-        }
-
-        if (n_faces>=capacity_faces){
-            faces_char = (char **) realloc(faces_char, capacity_faces*2*sizeof(char *));
-            capacity_faces = capacity_faces*2;
-        }
-                
+    // For each lines, if vertex or face, it will copy the entire line into
+    // the corresponding array
+    while (getline(&contents, &len, file) != -1) {                
         // If vertex
         if (contents[0] == 'v'){
-            vertices_char[n_vertices] = calloc(len, sizeof(char *));
-            strcpy(vertices_char[n_vertices], contents);
-            n_vertices++;
+            append_resizbl_arr_str(&vertices_char, calloc(len, sizeof(char *)));
+            
+            strcpy(
+                get_resizbl_arr_str(vertices_char, vertices_char.size-1), 
+                contents
+            );
 
         }
         // If face
         else if (contents[0] == 'f'){
-            faces_char[n_faces] = calloc(len, sizeof(char *));
-            strcpy(faces_char[n_faces], contents);
-            n_faces++;
+            append_resizbl_arr_str(&faces_char, calloc(len, sizeof(char *)));
+            
+            strcpy(
+                get_resizbl_arr_str(faces_char, faces_char.size-1),
+                contents
+            );
         }
     }
 
     fclose(file);
     
     
-    // Converts the vertors lines into real vectors 
-    vec3* vertices = calloc(n_vertices, sizeof(vec3));    
-    for(int i=0; i<n_vertices; i++){
-        char* line = vertices_char[i];
+    /*
+    Converts the vertices lines into real vectors 
+    */
+    vec3* vertices = calloc(vertices_char.size, sizeof(vec3));    
+    for(int i=0; i<vertices_char.size; i++){
+        char* line = get_resizbl_arr_str(vertices_char, i);
 
         // Builds a realtime string of the numbers
         char** coords = calloc(3, sizeof(char*));
@@ -525,11 +505,13 @@ triangle3D* loadObj(char* filepath, int* triangles_number){
         sscanf(coords[2], "%f", &vertices[i].z);
     }
 
-    // Converts the vectors & faces into triangles
-    triangle3D* triangles = calloc(n_faces*2, sizeof(triangle3D));
-    int n_triangles = 0;
-    for(int i=0; i<n_faces; i++){
-        char* line = faces_char[i];
+    /*
+        Converts the vertices & faces into triangles
+    */
+    resizable_array_t3D triangles = init_resizable_array_t3D();
+
+    for(int i=0; i<faces_char.size; i++){
+        char* line = get_resizbl_arr_str(faces_char, i);
         
         // Builds a realtime string of the numbers
         char** numbers_char = calloc(4, sizeof(char*));
@@ -563,49 +545,50 @@ triangle3D* loadObj(char* filepath, int* triangles_number){
 
         // Creates the triangles according to the .obj standard 
         if (n_numbers == 3){
-            triangles[n_triangles].v1 = vertices[numbers[0]-1];
-            triangles[n_triangles].v2 = vertices[numbers[1]-1];
-            triangles[n_triangles].v3 = vertices[numbers[2]-1];
-            n_triangles++;
+            triangle3D t = {
+                vertices[numbers[0]-1],
+                vertices[numbers[1]-1],
+                vertices[numbers[2]-1]
+            };
+            append_resizbl_arr_t3D(&triangles, t);
             
         } else {
-            triangles[n_triangles].v1 = vertices[numbers[0]-1];
-            triangles[n_triangles].v2 = vertices[numbers[1]-1];
-            triangles[n_triangles].v3 = vertices[numbers[2]-1];
-            n_triangles++;
+            triangle3D t1 = {
+                vertices[numbers[0]-1],
+                vertices[numbers[1]-1],
+                vertices[numbers[2]-1]
+            };
+            append_resizbl_arr_t3D(&triangles, t1);
 
-            triangles[n_triangles].v1 = vertices[numbers[2]-1];
-            triangles[n_triangles].v2 = vertices[numbers[3]-1];
-            triangles[n_triangles].v3 = vertices[numbers[0]-1];
-            n_triangles++;
-
+            triangle3D t2 = {
+                vertices[numbers[2]-1],
+                vertices[numbers[3]-1],
+                vertices[numbers[0]-1]
+            };
+            append_resizbl_arr_t3D(&triangles, t2);
         }
     }
-
-    *triangles_number = n_triangles;
+    
+    free_resizbl_arr_str(vertices_char);
+    free_resizbl_arr_str(faces_char);
+    
     return triangles;
 }
 
 /*
-Adds a mesh (an array of 3D Triangles) to the scene
+Adds a mesh (an resizable array of 3D Triangles) to the scene
 
 `s` : Scene
-`mesh` : Array of 3DTriangle
-`n` :  Size of the array
+`mesh` : Resizable Triangle3D array of the triangles of the mesh
 */
-void addMesh(scene* s, triangle3D* mesh, int n){
-    // Temporary solution before adding resizable array
-    if (s->capacity < s->size + n) printf("Warning : No space left");
-
-    for(int i = 0; i < n; i++){
-        s->objects[s->size + i] = mesh[i];
+void addMesh(scene* s, resizable_array_t3D mesh){
+    for(int i = 0; i < mesh.size; i++){
+        append_resizbl_arr_t3D(&(s->objects), get_resizbl_arr_t3D(mesh, i));
     }
-
-    s->size += n;
 }
 
 void free_scene(scene* s){
-    free(s->objects);
+    free_resizbl_arr_t3D(s->objects);
     free_camera(s->cam);
     free(s);
 }

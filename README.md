@@ -32,7 +32,6 @@ Par ordre d'importance :
 
 - Trouver le ratio hauteur/largeur des caractères du terminal directement au lancement du programme, et non par le magic number `ASPECT_RATIO_CHARACTER_SHELL`
 - Faire une importation de .obj plus complète par rapport aux standards
-- Tableaux redimensionnables
 - Paramètre de lancement du programme : rajouter un objet à importer au démarrage
 - Création d'une structure `Mesh`
 - Optimisation : Changement de la représentation de la scène (par un arbre binaire de recherche peut être ? (découpage de l'espace en sous sections comme doom il me semble ?))

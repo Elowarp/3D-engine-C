@@ -1,16 +1,18 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 15:08:15
- *  Last modified : 03-03-2024 12:03:25
+ *  Last modified : 29-04-2024 18:18:19
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/ioctl.h>
 
+#include "../engine/engine.h"
+#include "../utils/math.h"
+#include "../utils/data_structures.h"
 
-#include "./engine/engine.h"
-#include "./utils/math.h"
+DEFINE_RESIZABLE(int)
 
 void test_triangles(){
     printf("--- Tests triangles ---\n");
@@ -28,21 +30,41 @@ void test_triangles(){
     printf("Triangle (-0.9, -0.5) (0, 0.7) (0.9, -0.5)\n\n");
     
     printf("Convertion to screen size : \n");
-    triangle2D t = triangle2D_to_screen(s, t);
-    print_triangle2D(t);
+    triangle2D t_screen = triangle2D_to_screen(s, t);
+    print_triangle2D(t_screen);
 
     printf("Square containing the triangle : \n");
-    vec2 tl = get_top_left_corner(t);
+    vec2 tl = get_top_left_corner(t_screen);
     printf("Top left corner : %f %f\n", tl.x, tl.y);
-    vec2 br = get_bottom_right_corner(t);
+    vec2 br = get_bottom_right_corner(t_screen);
     printf("Bottom right corner : %f %f\n\n", br.x, br.y);
     vec2 v = {12, 18};
-    printf("Is the point (12, 18) in the triangle ? : %b\n", is_point_inside_triangle(t, v));
+    printf("Is the point (12, 18) in the triangle ? : %b\n (should be 0)", is_point_inside_triangle(t, v));
+    printf("\n");
 }
 
+void test_resizable_array(){
+    printf("--- Tests resizable array ---\n");
+    resizable_array_int a = init_resizable_array_int();
+    for(int i = 0; i < 4; i++){
+        append_resizbl_arr_int(&a, i+1);
+    }
 
+    set_resizbl_arr_int(&a, 2, 5);
+
+    printf("The array should be [1, 2, 5, 4, ] : [");
+    for(int i = 0; i < 4; i++){
+        printf("%d, ", get_resizbl_arr_int(a, i));
+    }
+    printf("]\n");
+
+    free_resizbl_arr_int(a);
+    
+    printf("\n");
+}
 
 int main(){
     test_triangles();
+    test_resizable_array();
     return 0;
 }

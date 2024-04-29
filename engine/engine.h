@@ -1,12 +1,16 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 01-04-2024 20:02:17
+ *  Last modified : 29-04-2024 19:20:00
  */
 #ifndef SCREEN_H
 #define SCREEN_H
 
 #include "../utils/math.h"
+#include "../utils/data_structures.h"
+
+EXPORT_RESIZABLE(triangle3D, t3D)
+EXPORT_RESIZABLE(char*, str)
 
 typedef struct {
     int width;
@@ -23,10 +27,8 @@ typedef struct {
 } camera;
 
 typedef struct {
-    int capacity;
-    int size;
     camera* cam;
-    triangle3D* objects;
+    resizable_array_t3D objects;
 } scene;
 
 typedef struct {
@@ -52,10 +54,10 @@ vec3 getCameraLookingAt(camera* cam);
 void free_camera(camera *cam);
 
 // Scene
-scene* init_scene(int n);
+scene* init_scene();
 void render(screen* scr, scene* s, lightSource source);
-void addMesh(scene* s, triangle3D* mesh, int n);
-triangle3D* loadObj(char* filepath, int* triangles_number);
+void addMesh(scene* s, resizable_array_t3D mesh);
+resizable_array_t3D loadObj(char* filepath);
 void free_scene(scene* s);
 
 // Light

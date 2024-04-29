@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 01-04-2024 20:20:41
+ *  Last modified : 29-04-2024 19:27:48
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +11,7 @@
 
 #include "./engine/engine.h"
 #include "./utils/math.h"
+#include "./utils/data_structures.h"
 
 bool has_screen_modified_size(screen* s, struct winsize w){
     ioctl(0, TIOCGWINSZ, &w);
@@ -35,9 +36,8 @@ int main(){
     l.pos = lv;
     
     // Imports a cube from the disk
-    int n;
-    triangle3D* cube = loadObj("objects/cube.obj", &n);
-    addMesh(s, cube, n);
+    resizable_array_t3D cube = loadObj("objects/cube.obj");
+    addMesh(s, cube);
     
     // Main loop
     while(true){   
@@ -51,6 +51,7 @@ int main(){
         moveCamera(s->cam, getchar());
     }
 
+    free_resizbl_arr_t3D(cube);
     free_screen(scr);
     free_scene(s);
     
