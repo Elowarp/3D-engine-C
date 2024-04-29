@@ -1,17 +1,42 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 29-04-2024 21:10:57
+ *  Last modified : 29-04-2024 21:51:00
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/ioctl.h>
 #include <ncurses.h> 
+#include <time.h>
+#include <errno.h>  
 
 #include "./engine/engine.h"
 #include "./utils/math.h"
 #include "./utils/data_structures.h"
+
+// From 
+// https://stackoverflow.com/questions/1157209/is-there-an-alternative-sleep-function-in-c-to-milliseconds
+int msleep(long msec)
+{
+    struct timespec ts;
+    int res;
+
+    if (msec < 0)
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    ts.tv_sec = msec / 1000;
+    ts.tv_nsec = (msec % 1000) * 1000000;
+
+    do {
+        res = nanosleep(&ts, &ts);
+    } while (res && errno == EINTR);
+
+    return res;
+}
 
 bool has_screen_modified_size(screen* s, struct winsize w){
     ioctl(0, TIOCGWINSZ, &w);
@@ -30,7 +55,7 @@ int main(){
     screen* scr = init_screen(w.ws_col, w.ws_row-1);
     scene* s = init_scene();
 
-    vec3 pos = {0, -2, 0};
+    vec3 pos = {0, -200, 0};
     s->cam->pos = pos;
 
     // Creates a light source
@@ -38,9 +63,9 @@ int main(){
     vec3 lv = {40, -200, 100};
     l.pos = lv;
     
-    // Imports a cube from the disk
-    resizable_array_t3D cube = loadObj("objects/cube.obj");
-    addMesh(s, cube);
+    // Imports a mesh from the disk
+    mesh my_mesh = loadObj("objects/monkeyrotated.obj");
+    addMesh(s, my_mesh);
     
     // Main loop
     while(true){   
@@ -51,10 +76,13 @@ int main(){
 
         render(scr, s, l);
         
-        moveCamera(s->cam, getchar());
+        rotate_mesh_around_z(&my_mesh, 7);
+        msleep(100);
+
+        //moveCamera(s->cam, getchar());
     }
 
-    free_resizbl_arr_t3D(cube);
+    free_mesh(my_mesh);
     free_screen(scr);
     free_scene(s);
     

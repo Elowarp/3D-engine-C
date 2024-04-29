@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 29-04-2024 19:20:00
+ *  Last modified : 29-04-2024 21:39:45
  */
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -27,13 +27,21 @@ typedef struct {
 } camera;
 
 typedef struct {
-    camera* cam;
-    resizable_array_t3D objects;
-} scene;
+    vec3 pos;
+} lightSource;
 
 typedef struct {
     vec3 pos;
-} lightSource;
+    triangle3D* triangles;
+    int size;
+} mesh;
+
+EXPORT_RESIZABLE(mesh, mesh)
+
+typedef struct {
+    camera* cam;
+    resizable_array_mesh objects;
+} scene;
 
 // Screen
 screen* init_screen(int width, int height);
@@ -56,9 +64,13 @@ void free_camera(camera *cam);
 // Scene
 scene* init_scene();
 void render(screen* scr, scene* s, lightSource source);
-void addMesh(scene* s, resizable_array_t3D mesh);
-resizable_array_t3D loadObj(char* filepath);
+mesh loadObj(char* filepath);
 void free_scene(scene* s);
+
+// Mesh
+void addMesh(scene* s, mesh m);
+void rotate_mesh_around_z(mesh* m, double angle);
+void free_mesh(mesh m);
 
 // Light
 char diffuseLight(lightSource source, vec3 normal, vec3 v);

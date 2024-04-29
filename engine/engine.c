@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 29-04-2024 21:03:27
+ *  Last modified : 29-04-2024 21:53:21
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +12,7 @@
 #include "../utils/data_structures.h"
 
 DEFINE_RESIZABLE(triangle3D, t3D)
+DEFINE_RESIZABLE(mesh, mesh)
 DEFINE_RESIZABLE(char*, str)
 
 
@@ -24,6 +25,7 @@ const double PROXIMITY = 0.1;
 const int nbChar = 7;
 const char* lightGradient = ".,;la#@";
 float ASPECT_RATIO_CHARACTER_SHELL = 2.2;
+const vec3 origin = {0, 0, 0}; 
 
 // Screens
 screen* init_screen(int width, int height){
@@ -119,7 +121,7 @@ void free_screen(screen* s){
 // Cameras
 camera* init_camera(){
     camera *cam = calloc(1, sizeof(camera));
-    vec3 pos = {0, 0, 0};
+    vec3 pos = origin;
     
     vec3 v1 = {1, 0, 0};
     vec3 v2 = {0, 1, 0};
@@ -178,12 +180,11 @@ void moveCamera(camera *cam, char command){
         break;
 
     case 'r':
-        vec3 pos = {0, 0, 0};
         vec3 v1 = {1, 0, 0};
         vec3 v2 = {0, 1, 0};
         vec3 v3 = {0, 0, 1};
         
-        cam->pos = pos;
+        cam->pos = origin;
         cam->v1 = v1;
         cam->v2 = v2;
         cam->v3 = v3;
@@ -245,8 +246,8 @@ void free_camera(camera *cam){
 scene* init_scene(){
     scene* s = calloc(1, sizeof(scene));
 
-    s->objects = init_resizable_array_t3D();
-    s->cam = init_camera(0, 0, 0);
+    s->objects = init_resizable_array_mesh();
+    s->cam = init_camera();
 
     return s;
 }
@@ -311,15 +312,15 @@ bool is_visible(triangle3D t, camera* cam){
     return an resizable array of 3Dtriangle that should be 
     drawn on the screen (Cutting, in some case, triangles by half)
 */
-resizable_array_t3D clip(resizable_array_t3D objects, camera* cam){
+resizable_array_t3D clip(resizable_array_t3D triangles, camera* cam){
     // Point in the limit plane
     vec3 planePoint = add_vec3(cam->pos, mul_vec3(getCameraLookingAt(cam), PROXIMITY));
     
     // Triangles that will be shown
     resizable_array_t3D results = init_resizable_array_t3D();
     
-    for(int i = 0; i<objects.size; i++){
-        triangle3D t = get_resizbl_arr_t3D(objects, i);
+    for(int i = 0; i<triangles.size; i++){
+        triangle3D t = get_resizbl_arr_t3D(triangles, i);
 
         if (!is_visible(t, cam)) continue;
         
@@ -404,6 +405,10 @@ resizable_array_t3D clip(resizable_array_t3D objects, camera* cam){
     return results;
 }   
 
+/*
+Returns an double array of the distances of every triangles with the camera
+in the same order as they occured in the initial array. 
+*/
 double* triangles3DToDistsArray(triangle3D* triangles, int n, camera* cam){
     double* dists = calloc(n, sizeof(double));
     for(int i = 0; i < n; i++){
@@ -412,11 +417,28 @@ double* triangles3DToDistsArray(triangle3D* triangles, int n, camera* cam){
     return dists;
 }
 
+/*
+Convert a resizable mesh array into a resizable triangle3D array
+*/
+resizable_array_t3D trianglesFromMeshArray(resizable_array_mesh meshes){
+    resizable_array_t3D triangles = init_resizable_array_t3D();
+    for(int i = 0; i<meshes.size; i++){
+        mesh m = get_resizbl_arr_mesh(meshes, i);
+        for(int j = 0; j < m.size; j++){
+            append_resizbl_arr_t3D(&triangles, m.triangles[j]);
+        }
+    }
+    return triangles;
+}
+
 void render(screen* scr, scene* s, lightSource source){
     clear_screen(scr);
 
+    // Gets all triangles of the scene, might not be optimal
+    resizable_array_t3D triangles = trianglesFromMeshArray(s->objects);
+
     // Computes triangles to be shown
-    resizable_array_t3D clipped_triangles = clip(s->objects, s->cam);
+    resizable_array_t3D clipped_triangles = clip(triangles, s->cam);
 
     // Sorts descending the triangles by their distance to the camera 
     // to prevent further objects going over closer objects 
@@ -444,11 +466,22 @@ void render(screen* scr, scene* s, lightSource source){
 }
 
 /*
+Converts a resizable triangle3D array into a dynamic triangle3D array
+*/
+triangle3D* fromResizableToDynamicTriangleArray(resizable_array_t3D t){
+    triangle3D* triangles = calloc(t.size, sizeof(triangle3D));
+    for(int i = 0; i < t.size; i++){
+        triangles[i] = get_resizbl_arr_t3D(t, i);
+    }
+    return triangles;
+}
+
+/*
     Transform a .obj file into a resizable Triangle3D array
     See https://en.wikipedia.org/wiki/Wavefront_.obj_file for better 
     understanding of the parsing
 */
-resizable_array_t3D loadObj(char* filepath){
+mesh loadObj(char* filepath){
     /*
     Loads the file and save into `vertices_char` and `faces_char` each line 
     containing import stuff to create the mesh
@@ -594,26 +627,52 @@ resizable_array_t3D loadObj(char* filepath){
         }
     }
     
+    // Creates the final mesh
+    mesh m;
+    vec3 origin = {0, 0, 0};
+    m.pos = origin;
+    m.triangles = fromResizableToDynamicTriangleArray(triangles);
+    m.size = triangles.size;
+    
+    free_resizbl_arr_t3D(triangles);
     free_resizbl_arr_str(vertices_char);
     free_resizbl_arr_str(faces_char);
-    
-    return triangles;
+
+    return m;
 }
 
 /*
-Adds a mesh (an resizable array of 3D Triangles) to the scene
-
-`s` : Scene
-`mesh` : Resizable Triangle3D array of the triangles of the mesh
+Adds a mesh `m` to the scene `s`
 */
-void addMesh(scene* s, resizable_array_t3D mesh){
-    for(int i = 0; i < mesh.size; i++){
-        append_resizbl_arr_t3D(&(s->objects), get_resizbl_arr_t3D(mesh, i));
+void addMesh(scene* s, mesh m){
+    append_resizbl_arr_mesh(&(s->objects), m);
+}
+
+/*
+Rotates a mesh around the z axis
+*/
+void rotate_mesh_around_z(mesh* m, double angle){
+    // Vector and rotation matrix multiplication
+    double** r = rotation_matrix_z(angle);
+
+    for(int i = 0; i < m->size; i++){
+        m->triangles[i].v1 = multiply_matrix_vector_3D(r, m->triangles[i].v1); 
+        m->triangles[i].v2 = multiply_matrix_vector_3D(r, m->triangles[i].v2); 
+        m->triangles[i].v3 = multiply_matrix_vector_3D(r, m->triangles[i].v3); 
     }
+
+    free_matrix(3, r);
+}
+
+void free_mesh(mesh m){
+    free(m.triangles);
 }
 
 void free_scene(scene* s){
-    free_resizbl_arr_t3D(s->objects);
+    for(int i = 0; i < s->objects.size; i++) 
+        free_mesh(get_resizbl_arr_mesh(s->objects, i));
+        
+    free_resizbl_arr_mesh(s->objects);
     free_camera(s->cam);
     free(s);
 }
