@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 29-04-2024 20:01:27
+ *  Last modified : 04-05-2024 20:45:46
  */
 
 #ifndef MATH_H
@@ -59,7 +59,7 @@ void print_triangle2D(triangle2D t);
 
 // 3D Triangle
 void print_triangle3D(triangle3D t);
-float distTriangle3DCamera(triangle3D t, vec3 v);
+float distTriangleVec3(triangle3D t, vec3 v);
 
 // Utils triangles
 vec2 get_bottom_right_corner(triangle2D t);

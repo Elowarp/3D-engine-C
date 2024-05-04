@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 29-04-2024 20:01:30
+ *  Last modified : 04-05-2024 20:47:19
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,8 +184,8 @@ triangle2D project_triangle3D_to_2D(triangle3D t){
 Computes the distance between the center of mass of the triangle `t` 
 and a vector `v`
 */
-float distTriangle3DCamera(triangle3D t, vec3 v){
-    vec3 massCenter = mul_vec3(add_vec3(t.v1, add_vec3(t.v2, t.v3)), 1/3);
+float distTriangleVec3(triangle3D t, vec3 v){
+    vec3 massCenter = div_vec3(add_vec3(t.v1, add_vec3(t.v2, t.v3)), 3);
     vec3 pos = sub_vec3(massCenter, v);
     return lengthVec3(pos);
 }

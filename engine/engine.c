@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:49:50
- *  Last modified : 29-04-2024 21:53:21
+ *  Last modified : 04-05-2024 20:47:53
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,15 +15,11 @@ DEFINE_RESIZABLE(triangle3D, t3D)
 DEFINE_RESIZABLE(mesh, mesh)
 DEFINE_RESIZABLE(char*, str)
 
-
-extern const vec2 UNDEFINED_VEC2;
-extern const vec3 UNDEFINED_VEC3;
-
 const char DEFAULT_CHAR = ' ';
 const float ANGLE_ROTATION = 10;
 const double PROXIMITY = 0.1;
-const int nbChar = 7;
-const char* lightGradient = ".,;la#@";
+const int nbChar = 69;
+const char* lightGradient = ".'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 float ASPECT_RATIO_CHARACTER_SHELL = 2.2;
 const vec3 origin = {0, 0, 0}; 
 
@@ -412,7 +408,7 @@ in the same order as they occured in the initial array.
 double* triangles3DToDistsArray(triangle3D* triangles, int n, camera* cam){
     double* dists = calloc(n, sizeof(double));
     for(int i = 0; i < n; i++){
-        dists[i] = distTriangle3DCamera(triangles[i], cam->pos);
+        dists[i] = distTriangleVec3(triangles[i], cam->pos);
     }
     return dists;
 }
@@ -444,7 +440,9 @@ void render(screen* scr, scene* s, lightSource source){
     // to prevent further objects going over closer objects 
     double* dists = triangles3DToDistsArray(clipped_triangles.array, 
         clipped_triangles.size, s->cam);
-    sortArrayDesc((void **)clipped_triangles.array, dists, clipped_triangles.size);
+    
+    sortArrayDesc(clipped_triangles.array, dists, clipped_triangles.size,
+        sizeof(triangle3D));    
 
     // Draw triangles on the screen by their relative position to the camera
     for(int i = 0; i < clipped_triangles.size; i++){

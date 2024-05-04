@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 29-04-2024 16:48:07
- *  Last modified : 29-04-2024 19:55:39
+ *  Last modified : 04-05-2024 19:45:47
  */
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
@@ -69,6 +69,6 @@ TYPE get_resizbl_arr_ ## NAME(resizable_array_ ## NAME a, int i);\
 TYPE set_resizbl_arr_ ## NAME(resizable_array_ ## NAME* a, int i, TYPE element);\
 void free_resizbl_arr_ ## NAME(resizable_array_ ## NAME a);
 
-void sortArrayDesc(void** keys, double* values, int n);
+void sortArrayDesc(void* keys, double* values, int length, size_t elmt_size);
 
 #endif

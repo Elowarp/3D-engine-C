@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 29-04-2024 21:51:00
+ *  Last modified : 04-05-2024 20:49:47
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,7 +77,7 @@ int main(){
         render(scr, s, l);
         
         rotate_mesh_around_z(&my_mesh, 7);
-        msleep(100);
+        msleep(300);
 
         //moveCamera(s->cam, getchar());
     }

@@ -24,7 +24,7 @@ Compiler et exécuter le projet :
 make main && ./main
 ```
 
-Possibilité d'importation de `.obj` sommaires dans le main (Seulement importation des fichiers objets avec des faces de la forme `f x y z` ou `f x y z t`)
+Possibilité d'importation de `.obj` sommaires dans le main
 
 ## Idées d'approfondissement
 
@@ -33,7 +33,6 @@ Par ordre d'importance :
 - Trouver le ratio hauteur/largeur des caractères du terminal directement au lancement du programme, et non par le magic number `ASPECT_RATIO_CHARACTER_SHELL`
 - Faire une importation de .obj plus complète par rapport aux standards
 - Paramètre de lancement du programme : rajouter un objet à importer au démarrage
-- Création d'une structure `Mesh`
 - Optimisation : Changement de la représentation de la scène (par un arbre binaire de recherche peut être ? (découpage de l'espace en sous sections comme doom il me semble ?))
 - Création de 2 Threads :
   - Un pour la récupération des touches de claviers (dont mouvements)
