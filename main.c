@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:44:27
- *  Last modified : 04-05-2024 20:49:47
+ *  Last modified : 05-05-2024 18:52:45
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +55,7 @@ int main(){
     screen* scr = init_screen(w.ws_col, w.ws_row-1);
     scene* s = init_scene();
 
-    vec3 pos = {0, -200, 0};
+    vec3 pos = {0, -5, 0};
     s->cam->pos = pos;
 
     // Creates a light source
@@ -64,7 +64,7 @@ int main(){
     l.pos = lv;
     
     // Imports a mesh from the disk
-    mesh my_mesh = loadObj("objects/monkeyrotated.obj");
+    mesh my_mesh = loadObj("objects/cube&sphere.obj");
     addMesh(s, my_mesh);
     
     // Main loop

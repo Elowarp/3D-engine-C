@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 14:21:11
- *  Last modified : 04-05-2024 20:47:19
+ *  Last modified : 05-05-2024 18:55:56
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 
 #define PI 3.141592654
 
-const double EPSILON = 0.0001;
+const double EPSILON = 1.0E-7;
 
 // 2D Vectors
 vec2 add_vec2(vec2 v1, vec2 v2){
@@ -335,6 +335,8 @@ vec2 get_bottom_right_corner(triangle2D t){
     if (t.v2.y > br.y) br.y = t.v2.y;
     if (t.v3.y > br.y) br.y = t.v3.y;
 
+    br.x = ceil(br.x);
+    br.y = floor(br.y);
     return br;
 }
 
@@ -346,26 +348,29 @@ vec2 get_top_left_corner(triangle2D t){
     if (t.v2.y < tl.y) tl.y = t.v2.y;
     if (t.v3.y < tl.y) tl.y = t.v3.y;
 
+    tl.x = ceil(tl.x);
+    tl.y = floor(tl.y);
     return tl;
 }
 
-
-float sign (vec2 v1, vec2 v2, vec2 v3){
-    return (v1.x - v3.x) * (v2.y - v3.y) - (v2.x - v3.x) * (v1.y - v3.y);
+/*
+Returns the side where the point `pt` is located in relation to the 
+line of vertices `a` and `b
+*/
+float sign (vec2 pt, vec2 a, vec2 b){
+    return (a.x - pt.x) * (b.y - pt.y) - (b.x - pt.x) * (a.y - pt.y);
 }
 
-// Solution from 
-// https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
-bool is_point_inside_triangle(triangle2D t, vec2 v){
+bool is_point_inside_triangle(triangle2D t, vec2 pos){
     float d1, d2, d3;
     bool has_neg, has_pos;
 
-    d1 = sign(v, t.v1, t.v2);
-    d2 = sign(v, t.v2, t.v3);
-    d3 = sign(v, t.v3, t.v1);
+    d1 = sign(pos, t.v1, t.v2);
+    d2 = sign(pos, t.v2, t.v3);
+    d3 = sign(pos, t.v3, t.v1);
 
-    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    has_neg = (d1 <= 0) && (d2 <= 0) && (d3 <= 0);
+    has_pos = (d1 >= 0) && (d2 >= 0) && (d3 >= 0);
 
-    return !(has_neg && has_pos);
+    return has_neg || has_pos;
 }

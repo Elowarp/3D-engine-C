@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 13:50:05
- *  Last modified : 29-04-2024 21:39:45
+ *  Last modified : 05-05-2024 17:48:36
  */
 #ifndef SCREEN_H
 #define SCREEN_H
@@ -15,7 +15,7 @@ EXPORT_RESIZABLE(char*, str)
 typedef struct {
     int width;
     int height;
-    char* pixels;
+    char* pixels; // Top left corner is 0, bottom right corner is width*height-1
     double aspect_ratio_character;
 } screen;
 

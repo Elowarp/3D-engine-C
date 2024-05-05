@@ -24,12 +24,14 @@ Compiler et exécuter le projet :
 make main && ./main
 ```
 
-Possibilité d'importation de `.obj` sommaires dans le main
+Possibilité d'importation de `.obj` sommaires dans `main.c` (Variable `my_mesh`). Dézoomer le terminal augmente la définition des objets dans le rendu.
 
 ## Idées d'approfondissement
 
 Par ordre d'importance :
 
+- Fix le problème de l'axe Y des modèles remplacé par l'axe Z
+- Garder la même convention de nommage des variables et fonctions
 - Trouver le ratio hauteur/largeur des caractères du terminal directement au lancement du programme, et non par le magic number `ASPECT_RATIO_CHARACTER_SHELL`
 - Faire une importation de .obj plus complète par rapport aux standards
 - Paramètre de lancement du programme : rajouter un objet à importer au démarrage

@@ -1,7 +1,7 @@
 /*
  *  Name : Elowan
  *  Creation : 01-01-2024 15:08:15
- *  Last modified : 04-05-2024 20:27:21
+ *  Last modified : 05-05-2024 16:27:37
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,8 +39,20 @@ void test_triangles(){
     printf("Top left corner : %f %f\n", tl.x, tl.y);
     vec2 br = get_bottom_right_corner(t_screen);
     printf("Bottom right corner : %f %f\n\n", br.x, br.y);
-    vec2 v = {12, 18};
-    printf("Is the point (12, 18) in the triangle ? : %b\n (should be 0)", is_point_inside_triangle(t, v));
+    
+    vec2 v_out = {1, 0};
+    vec2 v_in = {0, 0};
+    vec2 v_vertex = {0, 0.7};
+    vec2 v_edge = {0, -0.5};
+    printf("Is the point (1, 0) in the triangle ? : %b (should be 0)\n",
+        is_point_inside_triangle(t, v_out));
+    printf("Is the point (0, 0) in the triangle ? : %b (should be 1)\n", 
+        is_point_inside_triangle(t, v_in));
+    printf("Is the vertex point (0, 0.7) in the triangle ? : %b (should be 1)\n",
+        is_point_inside_triangle(t, v_vertex));
+    printf("Is the edge point (0, -0.5) in the triangle ? : %b (should be 1)\n",
+        is_point_inside_triangle(t, v_edge));
+        
     printf("\n");
 }
 
